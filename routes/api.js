@@ -116,5 +116,36 @@ router.get('/races/date/:date', (req, res) => {
     }
 });
 
+/*
+ * 機能追加: 全データのエクスポート
+ * GET /api/export
+ */
+router.get('/export', (req, res) => {
+  try {
+    // races テーブルから全データを取得
+    const racesStmt = db.prepare('SELECT * FROM races');
+    const races = racesStmt.all();
+
+    // race_reviews テーブルから全データを取得
+    const reviewsStmt = db.prepare('SELECT * FROM race_reviews');
+    const reviews = reviewsStmt.all();
+
+    // 2つのテーブルのデータを1つのオブジェクトにまとめて返す
+    const exportData = {
+      races: races,
+      reviews: reviews,
+    };
+
+    // ダウンロード用のヘッダーを設定
+    const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    res.setHeader('Content-Disposition', `attachment; filename="keiba_review_backup_${date}.json"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.json(exportData);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: 'データのエクスポート中にエラーが発生しました。' });
+  }
+});
 
 module.exports = router;

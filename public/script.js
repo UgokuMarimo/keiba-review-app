@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchDateInput = document.getElementById('search-date');
   
   const searchResultsContent = document.getElementById('search-results-content');
+
+  const exportDataButton = document.getElementById('export-data-button');
   
   // === イベントリスナーの設定 ===
 
@@ -76,6 +78,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 「全データをエクスポート」ボタン
+  exportDataButton.addEventListener('click', async () => {
+    if (!confirm('データベースの全データをJSONファイルとしてダウンロードします。よろしいですか？')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/export');
+      if (!response.ok) {
+        throw new Error('サーバーからの応答がありません。');
+      }
+
+      // レスポンスからBlobオブジェクト（ファイルデータ）を取得
+      const blob = await response.blob();
+      
+      // ダウンロード用のURLを生成
+      const url = window.URL.createObjectURL(blob);
+      
+      // aタグを動的に作成してクリックさせることでダウンロードを実行
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      
+      // バックエンドで設定したファイル名をここで取得
+      const contentDisposition = response.headers.get('content-disposition');
+      let fileName = 'keiba_review_backup.json'; // デフォルトファイル名
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (fileNameMatch.length === 2)
+          fileName = fileNameMatch[1];
+      }
+      a.download = fileName;
+
+      document.body.appendChild(a);
+      a.click();
+      
+      // 後片付け
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      
+    } catch (error) {
+      alert(`エクスポートに失敗しました: ${error.message}`);
+    }
+  });
 
   // === 画面描画関数 ===
 
