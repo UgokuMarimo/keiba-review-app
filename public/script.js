@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const exportDataButton = document.getElementById('export-data-button');
   
+  const importFileInput = document.getElementById('import-file-input');
+  const importDataButton = document.getElementById('import-data-button');
   // === イベントリスナーの設定 ===
 
   // 「レース情報取得」ボタン
@@ -120,6 +122,41 @@ document.addEventListener('DOMContentLoaded', () => {
       
     } catch (error) {
       alert(`エクスポートに失敗しました: ${error.message}`);
+    }
+  });
+
+  // 「JSONからインポート」ボタン
+  importDataButton.addEventListener('click', async () => {
+    const file = importFileInput.files[0];
+    if (!file) {
+      alert('インポートするJSONファイルを選択してください。');
+      return;
+    }
+
+    if (!confirm('現在のデータベースはすべて上書きされます。よろしいですか？')) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('backupFile', file);
+
+    try {
+      const response = await fetch('/api/import', {
+        method: 'POST',
+        body: formData, // FormData を使う場合、Content-Typeヘッダーはブラウザが自動で設定するので不要
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error);
+      }
+      
+      alert(result.message);
+      // 成功したらページをリロードして、インポート結果を画面に反映させる
+      location.reload(); 
+
+    } catch (error) {
+      alert(`インポートに失敗しました: ${error.message}`);
     }
   });
 

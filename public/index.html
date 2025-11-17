@@ -61,7 +61,14 @@
       <div class="search-group">
         <label>データベース管理:</label>
         <button id="export-data-button">全データをエクスポート (JSON)</button>
+        <!-- ===== ここから修正 ===== -->
+        <div class="import-group">
+          <label for="import-file-input" class="sr-only">JSONファイルを選択</label>
+          <input type="file" id="import-file-input" accept="application/json">
+          <button id="import-data-button">JSONからインポート</button>
+        </div>
       </div>
+
     </section>
 
     <!-- ===== 検索結果表示セクション ===== -->

@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const Database = require('better-sqlite3');
+const multer = require('multer'); 
+
+// multer の設定: ファイルをメモリ上に一時保存する
+const upload = multer({ storage: multer.memoryStorage() });
 
 // データベースへの接続
 const dbPath = process.env.DB_PATH || path.resolve(__dirname, '..', 'database', 'database.db');
@@ -145,6 +149,55 @@ router.get('/export', (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'データのエクスポート中にエラーが発生しました。' });
+  }
+});
+
+/*
+ * 機能追加: 全データのインポート
+ * POST /api/import
+ */
+router.post('/import', upload.single('backupFile'), (req, res) => {
+  // 'backupFile' はフロントエンドから送られてくるファイルの名前
+  if (!req.file) {
+    return res.status(400).json({ error: 'ファイルがアップロードされていません。' });
+  }
+
+  try {
+    // アップロードされたファイルの内容を文字列として取得し、JSONに変換
+    const fileContent = req.file.buffer.toString('utf8');
+    const importData = JSON.parse(fileContent);
+
+    // データの形式が正しいか簡易チェック
+    if (!importData.races || !importData.reviews) {
+      throw new Error('JSONの形式が正しくありません。');
+    }
+
+    // トランザクション内でデータベースを更新
+    const importTransaction = db.transaction(() => {
+      // 1. 既存のデータをすべて削除 (子テーブルから先に)
+      db.prepare('DELETE FROM race_reviews').run();
+      db.prepare('DELETE FROM races').run();
+      
+      // 2. races テーブルにデータを挿入
+      const raceInsertStmt = db.prepare('INSERT INTO races (race_id, date, race_name, course) VALUES (?, ?, ?, ?)');
+      for (const race of importData.races) {
+        raceInsertStmt.run(race.race_id, race.date, race.race_name, race.course);
+      }
+      
+      // 3. race_reviews テーブルにデータを挿入
+      const reviewInsertStmt = db.prepare('INSERT INTO race_reviews (id, race_id, horse_name, jockey, popularity, finish, comment) VALUES (?, ?, ?, ?, ?, ?, ?)');
+      for (const review of importData.reviews) {
+        reviewInsertStmt.run(review.id, review.race_id, review.horse_name, review.jockey, review.popularity, review.finish, review.comment);
+      }
+    });
+
+    importTransaction(); // トランザクションを実行
+    
+    res.json({ message: 'データのインポートが正常に完了しました。ページをリロードして確認してください。' });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: `インポート中にエラーが発生しました: ${err.message}` });
   }
 });
 
