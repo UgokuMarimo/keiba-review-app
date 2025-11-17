@@ -3,7 +3,7 @@ const path = require('path');
 const apiRoutes = require('./routes/api'); // 後ほど作成する API ルートファイルをインポート
 
 const app = express();
-const PORT = 3000; // アプリケーションが待機するポート番号
+const PORT = process.env.PORT || 3000; // Renderが指定するポート、なければ3000番を使う
 
 // JSON形式のリクエストボディを解析するためのミドルウェア
 app.use(express.json());
