@@ -13,3 +13,4 @@ beautifulsoup4
 lxml
 requests
 tqdm
+plotly
