@@ -1,0 +1,15 @@
+﻿streamlit
+pandas
+numpy
+lightgbm
+shap
+joblib
+python-dotenv
+selenium
+webdriver-manager
+google-generativeai
+chromadb
+beautifulsoup4
+lxml
+requests
+tqdm

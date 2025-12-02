@@ -1,0 +1,9 @@
+﻿.env
+__pycache__/
+*.pyc
+.git/
+.venv/
+debug_code/
+tests/
+webapp_exports/
+predictions.db

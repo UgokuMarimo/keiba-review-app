@@ -1,0 +1,9 @@
+Best trial AUC: 0.877401777908
+Best params:
+  'num_leaves': 268,
+  'max_depth': 16,
+  'learning_rate': 0.027934246540934144,
+  'n_estimators': 700,
+  'min_child_samples': 90,
+  'lambda_l1': 4.90865936564065,
+  'lambda_l2': 2.7606911824111887e-08,
